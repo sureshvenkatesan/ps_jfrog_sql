@@ -1,4 +1,22 @@
 
+The way you can monitor/measure that Xray is healthy is by looking in the size of the queues in RabbitMQ - 
+index , persist and analysis queues.
+```
+/opt/jfrog/xray/app/third-party/rabbitmq/sbin/rabbitmqctl  list_queues |   grep -w -e "index" -e "persist" -e "analysis"
+```
+
+If you see these queue size is more than 1000 and growing and staying there for a long time then xray is backlogged. Most of the time you should see these queue sizes to be less than 20
+
+Also every worker  print log entry at INFO level with “elapsed” time for how much time it took to process an Artifact in its queue.
+
+Complimenting that you can use following time series sql queries to check  :
+
+- how many new artifacts arrived in Xray for indexing  say every 60 minutes during a time window specified in UTC
+- during this 60 minute intervals how many are indexed and scanned in each interval ( not including those which were eventally  indexed and scanned during this  time window )
+- did the artifacts eventually get indexed and scanned during this  time window
+
+Note:
+scanned_time in queries below may be slightly longer than the actual artifact scan time  as it will also include the time taken by the impact analysis process.
 # Artifacts eventually indexed and scanned in series of intervals (Query1):
 
 **Query1** splits the time window into 60 minute intervals and shows how many of artifacts that arrived (in Xray) in the interval were indexed or scanned in that interval or “eventually” in any future interval in the given UTC time window .
