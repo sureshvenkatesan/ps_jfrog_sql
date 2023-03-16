@@ -1,5 +1,5 @@
+
 # Artifacts eventually indexed and scanned in series of intervals (Query1):
-===========================================================================
 
 **Query1** splits the time window into 60 minute intervals and shows how many of artifacts that arrived (in Xray) in the interval were indexed or scanned in that interval or “eventually” in any future interval in the given UTC time window .
 
@@ -59,7 +59,7 @@ where x.repo is not null;
 ---
 
 # Artifacts indexed and scanned in that  interval itself (Query3):
-===================================================================
+
 **Query3** splits the time window into 60 minute intervals and shows how many of those arrived in the interval were  indexed or scanned in that interval itself. It will not count them even
 if they were eventually indexed or scanned in a later interval in the given time window.
 
@@ -95,6 +95,7 @@ ORDER BY interval_start
 ) x
 where x.num_arrived > 0;
 ```
+
 **Note:** 
 The purpose of adding + 3600 in the conditions index_time < extract(epoch from (interval_start + interval '60 minutes'))::bigint + 3600 and scanned_time < extract(epoch from (interval_start + interval '60 minutes'))::bigint + 3600 is to include files that were indexed or scanned within the first hour of the next interval.
 
