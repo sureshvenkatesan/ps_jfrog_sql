@@ -103,7 +103,7 @@ Here's why:
 
 The generate_series function generates a series of intervals starting from interval_start and ending at interval_start + interval '60 minutes'. The query is counting the number of files that arrived, indexed, or scanned within these intervals.
 
-When we filter the index_time and scanned_time using the condition <mark>index_time < extract(epoch from (interval_start + interval '60 minutes'))::bigint<mark> and <mark>scanned_time < extract(epoch from (interval_start + interval '60 minutes'))::bigint<mark>, respectively, we're excluding files that were indexed or scanned after the end of the interval. However, there could be some files that were indexed or scanned within the first hour of the next interval, and we want to include those files in the count as well.
+When we filter the index_time and scanned_time using the condition `index_time < extract(epoch from (interval_start + interval '60 minutes'))::bigint` and `scanned_time < extract(epoch from (interval_start + interval '60 minutes'))::bigint`, respectively, we're excluding files that were indexed or scanned after the end of the interval. However, there could be some files that were indexed or scanned within the first hour of the next interval, and we want to include those files in the count as well.
 
 So we add + 3600 to the end of the interval to extend the window by 1 hour, which allows us to include files that were indexed or scanned within the first hour of the next interval.
 
