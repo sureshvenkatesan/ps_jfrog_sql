@@ -15,8 +15,8 @@ Complimenting that you can use following time series sql queries to check  :
 - during this 60 minute intervals how many are indexed and scanned in each interval ( not including those which were eventally  indexed and scanned during this  time window )
 - did the artifacts eventually get indexed and scanned during this  time window
 
-Note:
-scanned_time in queries below may be slightly longer than the actual artifact scan time  as it will also include the time taken by the impact analysis process.
+
+
 # Artifacts eventually indexed and scanned in series of intervals (Query1):
 
 **Query1** splits the time window into 60 minute intervals and shows how many of artifacts that arrived (in Xray) in the interval were indexed or scanned in that interval or “eventually” in any future interval in the given UTC time window .
