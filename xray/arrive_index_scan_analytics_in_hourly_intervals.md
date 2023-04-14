@@ -1,4 +1,44 @@
 
+The latest scanned time of an Artifact can be found by querying the **root_files** table in 
+the Xray database. The colums that ahve this information are:
+
+- `arrive_time_ms` - epoch timestamp (in milliseconds) of when xray got the artifact
+- `index_time` - epoch timestamp (in seconds) of when xray finished indexing
+- `scanned_time` - epoch timestamp (in seconds) of when xray finished scanning
+
+**Note:**
+**scanned_time** most of the time will be shortly after the **index_time** . 
+If scanned_time is few hours after the index_time check if the above mentioned RabbitMQ queues had a huge backlog.
+
+But sometimes if you see a scanned_time that is many days after the  index_time , then it does  not mean it took that long to scan the artifact. 
+It just means there was a new vulnerability update received in Xray database, which matched the artifact checksum and the artifact was then 
+rescanned ( for impact analysis) and so the **scanned_time** is updated with the epoch from the new scan.
+
+Dev will be working on schema changes so that the later scan epoch is stored in different column **instead** of the **scanned_time** column ( which contains 
+the epoch from the first scan following when the artifact was indexed for the first time) to avoid the above  discrepancy .
+
+**Query0**
+```
+SELECT repo, TRIM(CONCAT(COALESCE(path, ''), ' ', COALESCE(name, ''))) AS path_name,
+    sha256 ,  
+to_char(to_timestamp(arrive_time_ms / 1000), 'YYYY-MM-DD HH24:MI:SS.MS') as arrive_datetime_utc,
+to_char(to_timestamp(index_time), 'YYYY-MM-DD HH24:MI:SS') AS index_datetime_utc,
+       to_char(to_timestamp(scanned_time), 'YYYY-MM-DD HH24:MI:SS') AS scanned_datetime_utc,
+       (index_time - (arrive_time_ms / 1000)) as  arrive_to_index_sec , 
+       ( scanned_time - index_time) as  index_to_scanned_sec,
+       ( scanned_time - (arrive_time_ms / 1000)) as  arrive_to_scanned_sec  
+from  root_files 
+where binary_manager_id = 'default'
+and sha256 = "the sha256 of the artifact file";
+```
+
+In the above sql,
+- `arrive_to_index_sec` is the time difference in seconds for  ( index_time - arrive_time)
+- `index_to_scanned_sec` is the time difference in seconds for  ( scanned_time - index_time )
+End users will mainly be interested in the (arrive_to_index_sec + index_to_scanned_sec)
+
+---
+
 The way you can monitor/measure that Xray is healthy is by looking in the size of the queues in RabbitMQ - 
 index , persist and analysis queues.
 ```
